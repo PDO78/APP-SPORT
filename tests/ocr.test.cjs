@@ -1,0 +1,5 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const {extract}=require('../ocr.js');
+test('rameur : unités françaises et durée',()=>{const r=extract('Durée 30:00\nDistance 5000 m\nCalories 250\nFC 120\nSPM 24\nAllure 2:00\nWatts 110','rameur');for(const [k,v]of Object.entries({minutes:30,distance:5,calories:250,heart:120,strokes:24,pace:120,power:110}))assert.equal(r[k].value,v);});
+test('elliptique et décimales',()=>{const r=extract('Time 45 min\nDistance 6,5 km\nRPM 60\nNiveau 8','elliptique');assert.equal(r.distance.value,6.5);assert.equal(r.rpm.value,60);assert.equal(r.resistance.value,8);});
+test('tapis',()=>{const r=extract('Time 1:02:30\nVitesse 10 km/h\nPente 3 %','tapis');assert.equal(r.minutes.value,62.5);assert.equal(r.speed.value,10);assert.equal(r.incline.value,3);});
+test('aucune invention : nombres isolés, unités absentes, conflits',()=>{for(const text of ['30 5000 250 120','Distance 5','Distance 5 km\nDistance 6 km'])assert.equal(extract(text,'rameur').distance.value,null);assert.equal(extract('Time 30\nFC 999','rameur').minutes.value,null);assert.equal(extract('FC 999','rameur').heart.value,null);});
