@@ -1,0 +1,26 @@
+{
+  "name": "app-sport",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build:mobile": "node scripts/build-mobile.cjs",
+    "test": "node --test tests/ocr.test.cjs tests/secure-store.test.cjs tests/tcx.test.cjs",
+    "sync:mobile": "npm run build:mobile && cap sync",
+    "test:browser": "node tests/browser.cjs",
+    "vendor:ocr": "node scripts/vendor-ocr.cjs"
+  },
+  "dependencies": {
+    "@aparajita/capacitor-secure-storage": "8.0.1",
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "8.6.0",
+    "@tesseract.js-data/eng": "1.0.0",
+    "tesseract.js": "5.1.1",
+    "tesseract.js-core": "5.1.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0",
+    "esbuild": "0.27.4",
+    "playwright": "1.62.1"
+  }
+}
