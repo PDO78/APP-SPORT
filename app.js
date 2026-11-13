@@ -52,6 +52,17 @@ $('analyze').onclick=async()=>{
   for(let i=0;i<selected.length;i++){
    status('Analyse de l’image '+(i+1)+' / '+selected.length);
    const frame=selected[i];
+   if(equipment==='rameur'&&!frame.field){
+    status('Recherche de l’afficheur à segments…');
+    const lcd=await Promise.race([SportLCD.read(frame.src,worker,()=>{if(cancelled)throw Error('Analyse annulée.');}),interrupted]);if(cancelled)return;
+    if(lcd)texts.push('Afficheur à segments :\n'+lcd.diagnostics.join('\n'));
+    if(lcd?.confirmed){
+     for(const [key,raw]of Object.entries(lcd.fields)){if(raw===null)continue;const item=SportOCR.assigned(raw,key,key==='minutes'?'clock':key==='distance'?'m':'');if(item.value!==null)values[key].push(item.value);}
+     // Ce profil ne mesure pas de moyenne cardiaque, de cadence ou de puissance.
+     continue;
+    }
+   }
+
    await Promise.race([worker.setParameters({tessedit_pageseg_mode:frame.field?'7':'11'}),interrupted]);
    async function collect(source,variant){
     await Promise.race([worker.setParameters({tessedit_pageseg_mode:frame.field?'7':'11'}),interrupted]);

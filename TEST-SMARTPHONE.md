@@ -4,7 +4,7 @@ Cette version s’utilise dans Safari iPhone ou Chrome Android, sans PC et sans 
 
 ## Avant la salle
 
-1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version smartphone • lecture par colonnes et totaux rameur ».
+1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version smartphone • lecture Heubozen validée sur photo ».
 2. Garder une connexion Internet pendant le test. Le moteur et le modèle OCR représentent environ 11 Mo au total dans le site ; seuls les fichiers utiles au navigateur sont chargés. Aucun service OCR externe ne reçoit les photos.
 3. Faire un essai photo d’un texte simple (« TIME 30:00 », « DISTANCE 5 km », « CALORIES 250 ») pour vérifier le chargement du moteur et la lecture du fichier.
 4. Ne pas compter sur l’import automatique Garmin : cette version crée un TCX et guide vers l’import manuel. Aucun identifiant n’est demandé par APP-SPORT.
@@ -39,7 +39,7 @@ Choisir Garmin Connect ou Strava, enregistrer le fichier puis ouvrir le lien d�
 
 Tests automatisés : extraction des équipements et des unités, conflits et données absentes, politique du coffre natif, validité des données TCX ; parcours tactile Chromium avec OCR réellement exécuté sur images synthétiques tapis/rameur, lecture du XML exporté, partage simulé, séparation des séances, vidéo synthétique, annulation et échec du moteur. Le test bloque toute requête vers un domaine externe.
 
-Ce n’est pas encore une validation sur vos écrans sportifs réels. Le téléchargement de WebKit pour tester le moteur Safari a été bloqué par la politique réseau du cloud (HTTP 403 sur les domaines de téléchargement Playwright). Safari iPhone, le partage système réel, les codecs physiques et l’import dans les comptes Garmin/Strava ne sont donc pas déclarés validés.
+La photo réelle du rameur reçue ensuite dans un ZIP a été validée dans Chromium avec le test dédié `test:photo`. La vidéo réelle du tapis reste à fournir. Le téléchargement de WebKit pour tester le moteur Safari a été bloqué par la politique réseau du cloud (HTTP 403 sur les domaines de téléchargement Playwright). Safari iPhone, le partage système réel, les codecs physiques et l’import dans les comptes Garmin/Strava ne sont donc pas déclarés validés.
 
 ## Nouveaux essais ciblés
 
@@ -49,4 +49,4 @@ Ce n’est pas encore une validation sur vos écrans sportifs réels. Le téléc
 
 ## Valeurs visibles sur l'aperçu du rameur fourni le 13 novembre
 
-Transcription visuelle : durée 10 min 08 s, distance 1 449 m, calories 78, total 232 coups, niveau 6. L'écran est en pause, la FC n'est pas renseignée et les zéros de cadence/puissance ne sont pas des moyennes de la séance. Renseigner le début réel de séance séparément avant tout export. Ces valeurs sont une lecture humaine de l'aperçu, pas le résultat d'un test automatisé sur le fichier photo original.
+Transcription visuelle : durée 10 min 08 s, distance 1 449 m, calories 78, total 232 coups, niveau 6. L'écran est en pause, la FC n'est pas renseignée et les zéros de cadence/puissance ne sont pas des moyennes de la séance. Renseigner le début réel de séance séparément avant tout export. Ces valeurs, d’abord transcrites visuellement, sont maintenant également retrouvées par le test automatisé sur le JPEG fourni dans le ZIP.
