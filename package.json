@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build:mobile": "node scripts/build-mobile.cjs",
-    "test": "node --test tests/ocr.test.cjs tests/secure-store.test.cjs tests/tcx.test.cjs",
+    "test": "node --test tests/ocr.test.cjs tests/secure-store.test.cjs tests/tcx.test.cjs tests/fit.test.cjs",
     "sync:mobile": "npm run build:mobile && cap sync",
     "test:browser": "node tests/browser.cjs",
     "vendor:ocr": "node scripts/vendor-ocr.cjs"
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "8.6.0",
+    "@garmin/fitsdk": "21.221.0",
     "esbuild": "0.27.4",
     "playwright": "1.62.1"
   }

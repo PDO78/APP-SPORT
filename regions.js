@@ -1,0 +1,23 @@
+/* Lecture ciblée : le champ et son unité sont choisis explicitement par l'utilisateur. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),panel=$('regionEditor'),canvas=$('regionCanvas');let image,selection,origin,onCrop,previousFocus,previousOverflow;
+function draw(){const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0,canvas.width,canvas.height);if(selection){ctx.strokeStyle='#ff3500';ctx.lineWidth=4;ctx.strokeRect(selection.x,selection.y,selection.w,selection.h);}}
+function units(){const key=$('regionField').value;const choices=key==='minutes'?[['clock','minutes:secondes ou heures:minutes:secondes'],['min','minutes'],['s','secondes']]:key==='distance'?[['m','mètres'],['km','kilomètres']]:key==='pace'?[['clock','minutes:secondes par 500 m'],['s','secondes par 500 m']]:key==='speed'?[['km/h','km/h']]:[['','unité du champ sélectionné']];$('regionUnit').replaceChildren(...choices.map(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;return option;}));}
+function point(event){const rect=canvas.getBoundingClientRect();return {x:Math.max(0,Math.min(canvas.width,(event.clientX-rect.left)*canvas.width/rect.width)),y:Math.max(0,Math.min(canvas.height,(event.clientY-rect.top)*canvas.height/rect.height))};}
+canvas.addEventListener('pointerdown',event=>{origin=point(event);selection=null;canvas.setPointerCapture(event.pointerId);event.preventDefault();});
+canvas.addEventListener('pointermove',event=>{if(!origin)return;const end=point(event);selection={x:Math.min(origin.x,end.x),y:Math.min(origin.y,end.y),w:Math.abs(origin.x-end.x),h:Math.abs(origin.y-end.y)};draw();});
+canvas.addEventListener('pointerup',()=>{origin=null;});canvas.addEventListener('pointercancel',()=>{origin=null;selection=null;draw();});
+function close(){panel.hidden=true;document.body.style.overflow=previousOverflow||'';onCrop=null;image=null;selection=null;previousFocus?.focus();}
+$('regionCancel').onclick=close;$('regionField').onchange=units;
+$('regionApply').onclick=()=>{
+ if(!image||!selection||selection.w<8||selection.h<8){$('regionMessage').textContent='Encadre les chiffres en glissant le doigt sur la photo. La zone est trop petite.';return;}
+ const crop=document.createElement('canvas'),scale=Math.min(4,Math.max(1,120/selection.h));crop.width=Math.round(selection.w*scale);crop.height=Math.round(selection.h*scale);const ctx=crop.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,crop.width,crop.height);ctx.drawImage(image,selection.x,selection.y,selection.w,selection.h,0,0,crop.width,crop.height);
+ // Conversion en niveaux de gris et normalisation du contraste, sans modifier les chiffres.
+ const data=ctx.getImageData(0,0,crop.width,crop.height);let min=255,max=0;for(let i=0;i<data.data.length;i+=4){const gray=Math.round(.299*data.data[i]+.587*data.data[i+1]+.114*data.data[i+2]);data.data[i]=gray;min=Math.min(min,gray);max=Math.max(max,gray);}
+ for(let i=0;i<data.data.length;i+=4){const v=max>min?Math.round((data.data[i]-min)*255/(max-min)):data.data[i];data.data[i]=data.data[i+1]=data.data[i+2]=v;}
+ ctx.putImageData(data,0,0);const callback=onCrop;const result={src:crop.toDataURL('image/png'),field:$('regionField').value,unit:$('regionUnit').value};close();callback(result);
+};
+window.SportRegions={open:async(src,equipment,callback)=>{previousFocus=document.activeElement;const options=SportOCR.keys(equipment).map(key=>{const option=document.createElement('option');option.value=key;option.textContent=SportOCR.fields[key][0];return option;});$('regionField').replaceChildren(...options);units();const source=new Image();source.src=src;await source.decode();image=source;canvas.width=source.naturalWidth;canvas.height=source.naturalHeight;selection=null;onCrop=callback;$('regionMessage').textContent='Encadre uniquement les chiffres avec le doigt, puis choisis leur signification et leur unité. Répète pour chaque valeur utile.';previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';panel.hidden=false;panel.scrollTop=0;panel.focus({preventScroll:true});draw();}};
+panel.addEventListener('keydown',event=>{if(event.key==='Escape')close();if(event.key==='Tab'){const elements=[...panel.querySelectorAll('button,select')];const first=elements[0],last=elements[elements.length-1];if(document.activeElement===panel){event.preventDefault();(event.shiftKey?last:first).focus();}else if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
+})();
