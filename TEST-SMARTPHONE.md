@@ -4,7 +4,7 @@ Cette version s’utilise dans Safari iPhone ou Chrome Android, sans PC et sans 
 
 ## Avant la salle
 
-1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version smartphone • correctif vidéo et lecture ciblée ».
+1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version smartphone • lecture par colonnes et totaux rameur ».
 2. Garder une connexion Internet pendant le test. Le moteur et le modèle OCR représentent environ 11 Mo au total dans le site ; seuls les fichiers utiles au navigateur sont chargés. Aucun service OCR externe ne reçoit les photos.
 3. Faire un essai photo d’un texte simple (« TIME 30:00 », « DISTANCE 5 km », « CALORIES 250 ») pour vérifier le chargement du moteur et la lecture du fichier.
 4. Ne pas compter sur l’import automatique Garmin : cette version crée un TCX et guide vers l’import manuel. Aucun identifiant n’est demandé par APP-SPORT.
@@ -46,3 +46,7 @@ Ce n’est pas encore une validation sur vos écrans sportifs réels. Le téléc
 - Après « Utiliser la vidéo », vérifier le nom et l’état affichés sous le lecteur. Si le chargement reste en attente, appuyer sur Lecture. Si un message de codec apparaît, conserver la vidéo originale pour diagnostic ; ne pas supprimer l’enregistrement.
 - Pour le rameur, essayer « Lire une zone » sous la photo, encadrer uniquement les chiffres puis choisir la durée, distance en mètres ou autre champ. Ajouter une zone par valeur, analyser puis vérifier.
 - Pour Garmin, sélectionner le format FIT, enregistrer le fichier et le choisir sur la page d’import Garmin Connect. En cas de refus, conserver le message exact et le fichier. L’acceptation par un compte réel n’est pas validée par les tests automatisés.
+
+## Valeurs visibles sur l'aperçu du rameur fourni le 13 novembre
+
+Transcription visuelle : durée 10 min 08 s, distance 1 449 m, calories 78, total 232 coups, niveau 6. L'écran est en pause, la FC n'est pas renseignée et les zéros de cadence/puissance ne sont pas des moyennes de la séance. Renseigner le début réel de séance séparément avant tout export. Ces valeurs sont une lecture humaine de l'aperçu, pas le résultat d'un test automatisé sur le fichier photo original.

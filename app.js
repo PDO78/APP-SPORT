@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id);let frames=[],worker,busy=false;
-window.updateExtra=function(){const previous={};$('extraFields').querySelectorAll('input').forEach(i=>previous[i.id]=i.value);$('extraFields').replaceChildren();for(const key of SportOCR.keys($('eq').value).slice(4)){const label=document.createElement('label');label.textContent=SportOCR.fields[key][0];const input=document.createElement('input');input.type='number';input.min='0';input.step='any';input.id=key;input.value=previous[key]||'';label.append(input);$('extraFields').append(label);}};
+window.updateExtra=function(){const previous={};$('extraFields').querySelectorAll('input').forEach(i=>previous[i.id]=i.value);$('extraFields').replaceChildren();for(const key of SportOCR.keys($('eq').value).slice(4)){const label=document.createElement('label');label.textContent=SportOCR.fields[key][0];const input=document.createElement('input');input.type='number';input.min='0';input.step=key==='totalStrokes'?'1':'any';input.id=key;input.value=previous[key]||'';label.append(input);$('extraFields').append(label);}};
 updateExtra();
 function status(message){$('ocrStatus').textContent=message;}
 function render(){
@@ -47,28 +47,47 @@ $('analyze').onclick=async()=>{
    logger:m=>{if(!cancelled&&m.status==='recognizing text')status('Lecture en cours : '+Math.round(m.progress*100)+' %');}
   }).then(async value=>{if(cancelled||currentGeneration!==generation){await value.terminate();throw Error('Analyse annulée.');}return value;}),interrupted]);
   if(cancelled)return;
+  let pausedDisplay=false;
   const texts=[],values=Object.fromEntries(SportOCR.keys(equipment).map(key=>[key,[]]));
   for(let i=0;i<selected.length;i++){
    status('Analyse de l’image '+(i+1)+' / '+selected.length);
    const frame=selected[i];
-   await Promise.race([worker.setParameters({tessedit_pageseg_mode:frame.field?'7':'3'}),interrupted]);
-   const result=await Promise.race([worker.recognize(frame.src),interrupted]);
-   if(cancelled)return;
-   const text=result.data.text||'';
-   texts.push((frame.field?'Zone '+SportOCR.fields[frame.field][0]+' : ':'Image '+(i+1)+' : ')+text);
-   // Faible confiance : montrer le texte pour diagnostic, sans proposer de nombre.
-   if(result.data.confidence<50)continue;
-   if(frame.field){const item=SportOCR.assigned(text,frame.field,frame.unit);if(item.value!==null)values[frame.field].push(item.value);}
-   else {const parsed=SportOCR.extract(text,equipment);for(const [key,item]of Object.entries(parsed)){if(item.value!==null)values[key].push(item.value);else if(item.status.includes('contradictoires'))values[key].push('conflict');}}
+   await Promise.race([worker.setParameters({tessedit_pageseg_mode:frame.field?'7':'11'}),interrupted]);
+   async function collect(source,variant){
+    await Promise.race([worker.setParameters({tessedit_pageseg_mode:frame.field?'7':'11'}),interrupted]);
+    const result=await Promise.race([worker.recognize(source),interrupted]);if(cancelled)return false;
+    const text=result.data.text||'';texts.push((frame.field?'Zone '+SportOCR.fields[frame.field][0]+' : ':'Image '+(i+1)+' ('+variant+') : ')+text);
+    if(frame.field){if(result.data.confidence>=50){const item=SportOCR.assigned(text,frame.field,frame.unit);if(item.value!==null)values[frame.field].push(item.value);}}
+    else {
+     pausedDisplay=pausedDisplay||SportOCR.isPaused(text);
+     const spatial=SportOCR.extractSpatial(result.data,equipment),linear=result.data.confidence>=50?SportOCR.extract(text,equipment):{};
+     for(const key of SportOCR.keys(equipment))for(const item of [spatial[key],linear[key]]){if(!item)continue;if(item.value!==null)values[key].push(item.value);else if(item.status.includes('contradictoires'))values[key].push('conflict');}
+     // Relire un nombre isolé sous un libellé fiable : le mode de page
+     // « texte épars » peut ignorer un chiffre unique comme le niveau 6.
+     const size=await Promise.race([SportImagePrep.size(source),interrupted]);if(cancelled)return false;
+     for(const region of SportOCR.regions(result.data,equipment,size.width,size.height)){
+      if(values[region.key].length||pausedDisplay&&['strokes','power','pace'].includes(region.key))continue;
+      const crop=await Promise.race([SportImagePrep.crop(source,region),interrupted]);if(cancelled)return false;
+      await Promise.race([worker.setParameters({tessedit_pageseg_mode:'7'}),interrupted]);
+      const read=await Promise.race([worker.recognize(crop.src),interrupted]);if(cancelled)return false;
+      texts.push('Zone automatique '+SportOCR.fields[region.key][0]+' : '+(read.data.text||''));
+      if(read.data.confidence>=65){const item=SportOCR.assigned(read.data.text,region.key,region.unit);if(item.value!==null)values[region.key].push(item.value);}
+     }
+    }
+    return frame.field?values[frame.field].length>0:['minutes','distance','calories'].every(key=>values[key].some(v=>typeof v==='number'));
+   }
+   const complete=await collect(frame.src,'original');if(cancelled)return;
+   if(!complete){status('Deuxième lecture avec contraste renforcé…');const processed=await Promise.race([SportImagePrep.binary(frame.src),interrupted]);if(cancelled)return;await collect(processed,'contraste');}
   }
   const text=texts.join('\n');$('ocrText').textContent=text||'Aucun texte suffisamment fiable.';
   $('eq').value=equipment;updateExtra();
   const parsed=Object.fromEntries(Object.entries(values).map(([key,list])=>[key,list.includes('conflict')?{value:null,status:'Valeurs contradictoires : à saisir manuellement.'}:SportOCR.fromValues(list)])),messages=[];
+  if(pausedDisplay)for(const key of ['strokes','power','pace'])if(parsed[key])parsed[key]=SportOCR.pausedValue();
   for(const [key,item]of Object.entries(parsed)){
    $(key).value=item.value===null?'':String(item.value);
    messages.push(SportOCR.fields[key][0]+' : '+item.status);
   }
-  $('unit').value='km';$('minutes').dispatchEvent(new Event('input',{bubbles:true}));$('reviewed').checked=false;
+  $('unit').value=equipment==='rameur'?'m':'km';if(equipment==='rameur'&&parsed.distance.value!==null)$('distance').value=String(Number((parsed.distance.value*1000).toFixed(6)));$('minutes').dispatchEvent(new Event('input',{bubbles:true}));$('reviewed').checked=false;
   $('recognition').textContent=messages.join('\n');$('recognition').style.whiteSpace='pre-line';
   status('Analyse terminée. Vérifie et corrige les valeurs dans le formulaire.');location.hash='manual';
  }catch(e){if(!cancelled)status('Analyse impossible. '+e.message+' La saisie manuelle reste disponible.');}
