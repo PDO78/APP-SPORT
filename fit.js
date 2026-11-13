@@ -21,7 +21,8 @@ function build(data){
  // cadence ou FC instantanée reconstruite à partir d'une moyenne.
  message(2,20,[u32(253,end),u32(5,Math.round(meters*100))]);
  message(1,21,[u32(253,end),en(0,0),en(1,4)]);
- const common=[u32(253,end),u16(254,0),u32(2,start),u32(7,seconds*1000),u32(8,seconds*1000),u32(9,Math.round(meters*100)),u16(11,calories)];
+ const hasTotal=data.eq==='rameur'&&data.totalStrokes!==undefined&&data.totalStrokes!=='';if(hasTotal&&(!Number.isInteger(Number(data.totalStrokes))||Number(data.totalStrokes)<0||Number(data.totalStrokes)>=0xffffffff))throw Error('Vérifie le nombre total de coups.');
+ const common=[...(hasTotal?[u32(10,Number(data.totalStrokes))]:[]),u32(253,end),u16(254,0),u32(2,start),u32(7,seconds*1000),u32(8,seconds*1000),u32(9,Math.round(meters*100)),u16(11,calories)];
  const hasHeart=data.heart!==''&&data.heart!==undefined;
  message(3,19,[...common,en(0,9),en(1,1),en(25,sport),en(39,subSport),...(hasHeart?[u8(15,Math.round(Number(data.heart)))]:[])]);
  message(4,18,[...common,en(0,8),en(1,1),en(5,sport),en(6,subSport),u16(25,0),u16(26,1),...(hasHeart?[u8(16,Math.round(Number(data.heart)))]:[])]);
