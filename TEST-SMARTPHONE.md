@@ -4,7 +4,7 @@ Cette version s’utilise dans Safari iPhone ou Chrome Android, sans PC et sans 
 
 ## Avant la salle
 
-1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version de test smartphone • tapis et rameur ».
+1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version smartphone • correctif vidéo et lecture ciblée ».
 2. Garder une connexion Internet pendant le test. Le moteur et le modèle OCR représentent environ 11 Mo au total dans le site ; seuls les fichiers utiles au navigateur sont chargés. Aucun service OCR externe ne reçoit les photos.
 3. Faire un essai photo d’un texte simple (« TIME 30:00 », « DISTANCE 5 km », « CALORIES 250 ») pour vérifier le chargement du moteur et la lecture du fichier.
 4. Ne pas compter sur l’import automatique Garmin : cette version crée un TCX et guide vers l’import manuel. Aucun identifiant n’est demandé par APP-SPORT.
@@ -40,3 +40,9 @@ Choisir Garmin Connect ou Strava, enregistrer le fichier puis ouvrir le lien d�
 Tests automatisés : extraction des équipements et des unités, conflits et données absentes, politique du coffre natif, validité des données TCX ; parcours tactile Chromium avec OCR réellement exécuté sur images synthétiques tapis/rameur, lecture du XML exporté, partage simulé, séparation des séances, vidéo synthétique, annulation et échec du moteur. Le test bloque toute requête vers un domaine externe.
 
 Ce n’est pas encore une validation sur vos écrans sportifs réels. Le téléchargement de WebKit pour tester le moteur Safari a été bloqué par la politique réseau du cloud (HTTP 403 sur les domaines de téléchargement Playwright). Safari iPhone, le partage système réel, les codecs physiques et l’import dans les comptes Garmin/Strava ne sont donc pas déclarés validés.
+
+## Nouveaux essais ciblés
+
+- Après « Utiliser la vidéo », vérifier le nom et l’état affichés sous le lecteur. Si le chargement reste en attente, appuyer sur Lecture. Si un message de codec apparaît, conserver la vidéo originale pour diagnostic ; ne pas supprimer l’enregistrement.
+- Pour le rameur, essayer « Lire une zone » sous la photo, encadrer uniquement les chiffres puis choisir la durée, distance en mètres ou autre champ. Ajouter une zone par valeur, analyser puis vérifier.
+- Pour Garmin, sélectionner le format FIT, enregistrer le fichier et le choisir sur la page d’import Garmin Connect. En cas de refus, conserver le message exact et le fichier. L’acceptation par un compte réel n’est pas validée par les tests automatisés.
