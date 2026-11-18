@@ -4,7 +4,7 @@ Cette version s’utilise dans Safari iPhone ou Chrome Android, sans PC et sans 
 
 ## Avant la salle
 
-1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version smartphone • lecture Heubozen validée sur photo ».
+1. Ouvrir l’URL de la version publiée sur le téléphone et vérifier la mention « Version smartphone • vidéo découpée et analysée automatiquement ».
 2. Garder une connexion Internet pendant le test. Le moteur et le modèle OCR représentent environ 11 Mo au total dans le site ; seuls les fichiers utiles au navigateur sont chargés. Aucun service OCR externe ne reçoit les photos.
 3. Faire un essai photo d’un texte simple (« TIME 30:00 », « DISTANCE 5 km », « CALORIES 250 ») pour vérifier le chargement du moteur et la lecture du fichier.
 4. Ne pas compter sur l’import automatique Garmin : cette version crée un TCX et guide vers l’import manuel. Aucun identifiant n’est demandé par APP-SPORT.
@@ -12,9 +12,9 @@ Cette version s’utilise dans Safari iPhone ou Chrome Android, sans PC et sans 
 ## À la fin du tapis
 
 1. Photographier les écrans récapitulatifs avant leur disparition. Inclure les libellés et unités, éviter les reflets. Garder aussi les photos/vidéos originales dans Photos/Galerie : les images de l’application ne survivent pas à un rechargement.
-2. Dans APP-SPORT, choisir Tapis → Automatique. Prendre une photo ou choisir plusieurs photos. Pour une vidéo, mettre en pause sur chaque écran net, cliquer « Capturer cette image », répéter et cocher les images à analyser (12 maximum).
-3. Analyser, vérifier toutes les valeurs et renseigner l’heure réelle de début. Laisser la FC vide si seule une FC instantanée est connue. Les valeurs non reconnues ou contradictoires restent à saisir ; aucune estimation n’est faite. Les calories sont requises par le format TCX : ne pas en inventer si elles sont inconnues.
-4. Cocher la confirmation. Utiliser « Enregistrer le TCX » ou « Partager le TCX » puis enregistrer dans Fichiers/Téléchargements. Un partage accepté ne confirme pas un import Garmin. Vérifier que le fichier est effectivement présent avant de changer de séance.
+2. Dans APP-SPORT, choisir Tapis → Automatique. Prendre une photo ou choisir plusieurs photos. Pour une vidéo, filmer ou sélectionner le récapitulatif : attendre le découpage des écrans et l’analyse OCR automatiques. Il n’y a ni zone à tracer ni image à capturer à la main. Un bouton permet d’annuler ou de relancer le traitement.
+3. Pour des photos, lancer l’analyse ; pour une vidéo, attendre son analyse automatique. Vérifier toutes les valeurs et renseigner l’heure réelle de début. Laisser la FC vide si seule une FC instantanée est connue. Les valeurs non reconnues ou contradictoires restent à saisir ; aucune estimation n’est faite. Les calories sont requises par le format TCX : ne pas en inventer si elles sont inconnues.
+4. Cocher la confirmation. Choisir FIT ou TCX puis utiliser « Enregistrer le fichier » ou « Partager » puis enregistrer dans Fichiers/Téléchargements. Un partage accepté ne confirme pas un import Garmin. Vérifier que le fichier est effectivement présent avant de changer de séance.
 
 ## Puis le rameur
 
@@ -25,7 +25,7 @@ Cette version s’utilise dans Safari iPhone ou Chrome Android, sans PC et sans 
 
 ## Import depuis le téléphone
 
-Choisir Garmin Connect ou Strava, enregistrer le fichier puis ouvrir le lien d’import. Se connecter exclusivement sur le site de la plateforme. Si son interface mobile masque l’import, essayer « Version pour ordinateur » dans le menu du navigateur du téléphone. La disponibilité de l’import et l’acceptation du TCX par Garmin/Strava restent à confirmer avec un vrai compte ; le bouton de partage ne peut pas forcer une application destinataire à accepter un TCX.
+L’import automatique Garmin/Strava n’est pas configuré dans cette version. Choisir la plateforme et enregistrer le fichier, puis effectuer l’import MANUEL sur son site. Le bouton « Copier l’adresse d’import manuel » permet de coller l’adresse dans Safari ou Chrome si le lien ouvre seulement l’application native. Se connecter exclusivement sur le site de la plateforme. Si son interface mobile masque l’import, essayer « Version pour ordinateur » dans le menu du navigateur du téléphone. La disponibilité de l’import et l’acceptation du TCX par Garmin/Strava restent à confirmer avec un vrai compte ; le bouton de partage ne peut pas forcer une application destinataire à accepter un TCX.
 
 ## Si quelque chose ne marche pas
 
@@ -43,7 +43,7 @@ La photo réelle du rameur reçue ensuite dans un ZIP a été validée dans Chro
 
 ## Nouveaux essais ciblés
 
-- Après « Utiliser la vidéo », vérifier le nom et l’état affichés sous le lecteur. Si le chargement reste en attente, appuyer sur Lecture. Si un message de codec apparaît, conserver la vidéo originale pour diagnostic ; ne pas supprimer l’enregistrement.
+- Après « Utiliser la vidéo », vérifier le nom et l’état affichés sous le lecteur. Le découpage puis l’analyse démarrent automatiquement. Si Safari attend une interaction pour charger le fichier, appuyer une fois sur Lecture, sans définir de zone. Si un message de codec apparaît, conserver la vidéo originale pour diagnostic ; ne pas supprimer l’enregistrement.
 - Pour le rameur, essayer « Lire une zone » sous la photo, encadrer uniquement les chiffres puis choisir la durée, distance en mètres ou autre champ. Ajouter une zone par valeur, analyser puis vérifier.
 - Pour Garmin, sélectionner le format FIT, enregistrer le fichier et le choisir sur la page d’import Garmin Connect. En cas de refus, conserver le message exact et le fichier. L’acceptation par un compte réel n’est pas validée par les tests automatisés.
 
