@@ -1,32 +1,33 @@
-/* La référence File et le champ restent vivants tant que le lecteur utilise la vidéo. */
+/* Lecture locale : parcours automatique du fichier, extraction des écrans, puis OCR. */
 (function(){
 'use strict';
-const video=document.getElementById('video'),panel=document.getElementById('videoPanel'),capture=document.getElementById('capture'),status=document.getElementById('videoStatus');
-const inputs=['videoFile','videoLibrary'].map(id=>document.getElementById(id));
-let retainedFile=null,url=null,timer;
+const $=id=>document.getElementById(id),video=$('video'),panel=$('videoPanel'),capture=$('capture'),status=$('videoStatus'),inputs=['videoFile','videoLibrary'].map($);
+let retainedFile=null,url=null,loadTimer,controller=null,generation=0,started=-1,stage='idle';
 function report(text){status.textContent=text;}
 function ready(){return Boolean(retainedFile&&!video.error&&video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0);}
 function label(){return retainedFile?retainedFile.name+' ('+(retainedFile.size/1024/1024).toFixed(1)+' Mo)':'';}
-function update(){capture.disabled=!ready()||Boolean(window.ocrBusy?.());}
-function clear(){clearTimeout(timer);video.pause();video.removeAttribute('src');video.load();if(url)URL.revokeObjectURL(url);url=null;retainedFile=null;for(const input of inputs)input.value='';panel.hidden=true;report('');update();}
-function select(event){
- if(window.ocrBusy?.())return;
- const file=event.target.files?.[0];if(!file)return; // Annuler le sélecteur préserve la vidéo précédente.
- if(file.size===0){report('Le téléphone a transmis un fichier vide. Enregistre la vidéo dans Photos/Galerie puis choisis-la avec « Choisir une vidéo ».');panel.hidden=false;return;}
- const oldURL=url;clearTimeout(timer);video.pause();
- retainedFile=file;url=URL.createObjectURL(file);
- // Ne pas vider event.target.value : certains navigateurs mobiles conservent le
- // média via le champ. Garder également File évite de perdre la référence au fichier.
- for(const input of inputs)if(input!==event.target)input.value='';
- panel.hidden=false;video.muted=true;video.playsInline=true;video.preload='auto';video.src=url;
- capture.disabled=true;report('Vidéo reçue : '+label()+'. Chargement du lecteur…');
- video.load();if(oldURL)URL.revokeObjectURL(oldURL);
- timer=setTimeout(()=>{if(!ready()&&retainedFile)report('Vidéo reçue : '+label()+'. Appuie sur Lecture dans le lecteur. Si aucun écran ne s’affiche, choisis la vidéo enregistrée dans Photos/Galerie ou prends des photos des récapitulatifs.');},12000);
+function update(){const processing=Boolean(controller)||Boolean(window.ocrBusy?.());capture.disabled=!ready()||processing;$('autoVideo').disabled=!ready()||processing;$('cancelVideo').hidden=!controller;}
+function clear(){controller?.abort();clearTimeout(loadTimer);generation++;started=-1;video.pause();video.removeAttribute('src');video.load();if(url)URL.revokeObjectURL(url);url=null;retainedFile=null;for(const input of inputs)input.value='';panel.hidden=true;report('');update();}
+function wait(event,signal,trigger,timeout=12000){return new Promise((resolve,reject)=>{let timer;const cleanup=()=>{clearTimeout(timer);video.removeEventListener(event,done);video.removeEventListener('error',error);signal.removeEventListener('abort',abort);};const done=()=>{cleanup();resolve();},error=()=>{cleanup();reject(Error('Le navigateur ne peut pas lire cette vidéo.'));},abort=()=>{cleanup();reject(new DOMException('Analyse annulée','AbortError'));};if(signal.aborted){abort();return;}video.addEventListener(event,done,{once:true});video.addEventListener('error',error,{once:true});signal.addEventListener('abort',abort,{once:true});timer=setTimeout(()=>{cleanup();reject(Error('La lecture de la vidéo prend trop de temps. Essaie une vidéo MP4/H.264.'));},timeout);try{trigger();}catch(e){cleanup();reject(e);}});}
+async function seek(time,signal){if(signal.aborted)throw new DOMException('Analyse annulée','AbortError');if(Math.abs(video.currentTime-time)>.015||video.seeking)await wait('seeked',signal,()=>{video.currentTime=time;});if(video.readyState<2)await wait('loadeddata',signal,()=>{});await new Promise(resolve=>requestAnimationFrame(resolve));if(signal.aborted)throw new DOMException('Analyse annulée','AbortError');}
+async function duration(signal){if(Number.isFinite(video.duration)&&video.duration>0)return video.duration;
+ // Certains fichiers WebM n'annoncent leur durée qu'après une lecture jusqu'à la fin.
+ await wait('seeked',signal,()=>{video.currentTime=1e9;});if(Number.isFinite(video.duration)&&video.duration>0)return video.duration;throw Error('La durée du fichier vidéo est illisible. Choisis une vidéo MP4 depuis Photos/Galerie.');}
+async function run(){if(!ready()||window.ocrBusy?.())return;const id=generation;started=id;controller=new AbortController();const signal=controller.signal;stage='extract';clearTimeout(loadTimer);window.SportMedia.beginVideo();video.pause();video.controls=false;update();const timeout=setTimeout(()=>controller?.abort(),180000);
+ try{
+  const length=await duration(signal),times=SportScenes.sampleTimes(length),collector=new SportScenes.Collector();
+  const frame=document.createElement('canvas'),scale=Math.min(1,1280/video.videoWidth,1280/video.videoHeight);frame.width=Math.round(video.videoWidth*scale);frame.height=Math.round(video.videoHeight*scale);const ctx=frame.getContext('2d'),thumb=document.createElement('canvas');thumb.width=SportScenes.WIDTH;thumb.height=SportScenes.HEIGHT;const tc=thumb.getContext('2d',{willReadFrequently:true});
+  for(let i=0;i<times.length;i++){await seek(times[i],signal);if(id!==generation)throw new DOMException('Vidéo remplacée','AbortError');ctx.drawImage(video,0,0,frame.width,frame.height);tc.drawImage(frame,0,0,thumb.width,thumb.height);collector.push({fingerprint:SportScenes.fingerprint(tc.getImageData(0,0,thumb.width,thumb.height).data),time:times[i],capture:()=>frame.toDataURL('image/jpeg',.9)});report('Découpage automatique : '+Math.round((i+1)*100/times.length)+' % — recherche des écrans stables…');}
+  const result=collector.finish();if(!result.frames.length)throw Error('Aucune image exploitable dans la vidéo.');window.SportMedia.setVideoFrames(result.frames);stage='ocr';
+  if(result.overflow){report('Plus de 12 écrans différents détectés. Les 12 premiers sont affichés, mais aucune analyse partielle n’a été lancée. Filme uniquement les écrans récapitulatifs.');return;}
+  report(result.frames.length+' écran(s) extrait(s). '+(result.fallback?'Aucun écran suffisamment stable : vérifie particulièrement les valeurs. ':'')+'Analyse des images en cours…');
+  const ok=await window.SportMedia.analyze();if(signal.aborted)throw new DOMException('Analyse annulée','AbortError');report(ok?(result.fallback?'Une seule image a pu être retenue : aucun écran suffisamment stable. Les données peuvent être incomplètes ; vérifie chaque valeur.':'Vidéo découpée et analysée automatiquement : '+result.frames.length+' écran(s). Vérifie les valeurs dans le formulaire avant l’export.'):'Images extraites, mais l’analyse des valeurs n’a pas abouti. Consulte le message OCR ; les images restent disponibles.');
+ }catch(e){if(id===generation)report(video.error?'Lecture vidéo interrompue par une erreur de décodage. Choisis une vidéo MP4/H.264.':e.name==='AbortError'?'Traitement vidéo annulé. Tu peux relancer l’analyse.':'Traitement vidéo impossible : '+e.message);}
+ finally{clearTimeout(timeout);if(id===generation){controller=null;stage='idle';video.controls=true;window.SportMedia.endVideo();update();}}
 }
-video.addEventListener('loadedmetadata',()=>{if(!retainedFile)return;report('Vidéo reçue : '+label()+'. Appuie sur Lecture, puis mets en pause sur un écran net.');update();});
-for(const event of ['loadeddata','canplay','seeked'])video.addEventListener(event,()=>{if(!retainedFile)return;update();if(ready()){clearTimeout(timer);report('Vidéo prête : '+label()+'. Mets en pause sur un écran net puis capture une image.');}});
-video.addEventListener('error',()=>{if(!retainedFile||!video.error)return;clearTimeout(timer);update();const reason={1:'Chargement interrompu.',2:'Erreur de lecture du fichier.',3:'Le navigateur ne peut pas décoder cette vidéo.',4:'Le format ou le codec vidéo n’est pas pris en charge.'}[video.error.code]||'La vidéo est illisible.';report('Vidéo reçue : '+label()+'. '+reason+' Essaie une vidéo MP4/H.264 depuis Photos/Galerie, ou des photos JPEG/PNG.');});
-for(const input of inputs)input.addEventListener('change',select);
-window.SportVideo={clear,ready,update,hasFile:()=>retainedFile!==null};
-update();
+function select(event){if(window.ocrBusy?.())return;const file=event.target.files?.[0];if(!file)return;if(file.size===0){report('Le téléphone a transmis un fichier vide. Enregistre la vidéo dans Photos/Galerie puis choisis-la.');panel.hidden=false;return;}const oldURL=url;clearTimeout(loadTimer);generation++;started=-1;video.pause();retainedFile=file;url=URL.createObjectURL(file);for(const input of inputs)if(input!==event.target)input.value='';panel.hidden=false;video.muted=true;video.playsInline=true;video.preload='auto';video.src=url;capture.disabled=true;report('Vidéo reçue : '+label()+'. Chargement avant découpage automatique…');video.load();const selectedGeneration=generation;const prime=video.play();prime?.then(()=>{if(selectedGeneration===generation&&stage==='idle'&&started!==generation){video.pause();if(ready())void run();}}).catch(()=>{});if(oldURL)URL.revokeObjectURL(oldURL);loadTimer=setTimeout(()=>{if(!ready())report('Vidéo reçue : '+label()+'. Appuie sur Lecture pour autoriser son chargement, ou choisis une vidéo MP4/H.264.');},12000);}
+for(const event of ['loadeddata','canplay'])video.addEventListener(event,()=>{update();if(ready()&&started!==generation){clearTimeout(loadTimer);void run();}});
+video.addEventListener('error',()=>{if(!retainedFile||!video.error)return;clearTimeout(loadTimer);controller?.abort();update();const reason={1:'Chargement interrompu.',2:'Erreur de lecture du fichier.',3:'Le navigateur ne peut pas décoder cette vidéo.',4:'Le format ou le codec vidéo n’est pas pris en charge.'}[video.error.code]||'Vidéo illisible.';report('Vidéo reçue : '+label()+'. '+reason+' Choisis une vidéo MP4/H.264 depuis Photos/Galerie.');});
+for(const input of inputs)input.addEventListener('change',select);$('autoVideo').onclick=()=>void run();$('cancelVideo').onclick=()=>{controller?.abort();if(stage==='ocr')$('cancelOCR').click();};
+window.SportVideo={clear,ready,update,hasFile:()=>retainedFile!==null,processing:()=>Boolean(controller),ocrProgress:text=>{if(controller&&stage==='ocr')report('Écrans extraits. '+text);}};update();
 })();
