@@ -32,7 +32,7 @@ function assigned(text,key,unit){
  return fromValues([match?parseValue(match[1],key,unit):null]);
 }
 function extract(text,eq){
- const result={},lines=normalize(text).split(/\r?\n/),paused=isPaused(text);
+ const result={},lines=normalize(text).split(/\r?\n/).map(line=>line.trim()).filter(Boolean),paused=isPaused(text);
  for(const key of keys(eq)){
   const [,label,type]=fields[key],values=[];
   const units=type==='distance'?'(?:km|m|metres|meters)':type==='speed'?'km\\s*/\\s*h':type==='time'?'(?:minutes|min|secondes|sec|s)':'(?!)';

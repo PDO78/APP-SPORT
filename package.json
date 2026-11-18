@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "build:mobile": "node scripts/build-mobile.cjs",
-    "test": "node --test tests/ocr.test.cjs tests/secure-store.test.cjs tests/tcx.test.cjs tests/fit.test.cjs tests/lcd.test.cjs",
+    "test": "node --test tests/ocr.test.cjs tests/secure-store.test.cjs tests/tcx.test.cjs tests/fit.test.cjs tests/lcd.test.cjs tests/video-scenes.test.cjs",
     "sync:mobile": "npm run build:mobile && cap sync",
     "test:browser": "node tests/browser.cjs",
     "vendor:ocr": "node scripts/vendor-ocr.cjs",
-    "test:photo": "node tests/real-photo.cjs"
+    "test:photo": "node tests/real-photo.cjs",
+    "test:video": "node tests/video-browser.cjs"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "8.0.1",
