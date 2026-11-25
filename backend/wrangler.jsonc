@@ -1,0 +1,20 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "app-sport-vision",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2025-04-01",
+  "workers_dev": true,
+  "limits": {"cpu_ms": 1000},
+  "vars": {
+    "ALLOWED_ORIGINS": "https://pdo78.github.io",
+    "OPENAI_MODEL": "gpt-4.1",
+    "USER_MINUTE_LIMIT": "3",
+    "USER_DAILY_LIMIT": "20",
+    "USER_DAILY_IMAGES": "60",
+    "GLOBAL_DAILY_IMAGES": "240",
+    "LOGIN_IP_LIMIT": "10"
+  },
+  "durable_objects": {"bindings": [{"name": "VISION_QUOTA", "class_name": "VisionQuota"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["VisionQuota"]}],
+  "observability": {"enabled": false}
+}

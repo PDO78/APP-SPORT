@@ -1,0 +1,7 @@
+// Provisionnement initial atomique ; aucun secret affiché ni fichier remplacé.
+import {mkdir,mkdtemp,writeFile,rename,rm,lstat} from 'node:fs/promises';import {randomBytes} from 'node:crypto';import path from 'node:path';import {passwordHash,b64} from '../src/auth.mjs';
+const id=process.argv[2];if(!/^[a-zA-Z0-9_-]{1,64}$/.test(id||'')){console.error('Usage : node backend/scripts/create-user.mjs identifiant');process.exit(2);}
+const folder=path.resolve('backend/.secrets');let temporary;
+try{try{await lstat(folder);throw Error('backend/.secrets existe déjà : aucun fichier n’a été changé.');}catch(e){if(e.code!=='ENOENT')throw e;}await mkdir(path.dirname(folder),{recursive:true});temporary=await mkdtemp(path.resolve('backend/.secrets-tmp-'));const password=randomBytes(24).toString('base64url'),salt=b64(randomBytes(16)),hash=b64(await passwordHash(password,salt));
+ await writeFile(path.join(temporary,'users.json'),JSON.stringify({users:[{id,salt,hash,iterations:100000,version:1}]},null,2),{mode:0o600,flag:'wx'});await writeFile(path.join(temporary,'session-key.txt'),randomBytes(48).toString('base64url'),{mode:0o600,flag:'wx'});await writeFile(path.join(temporary,'initial-login.txt'),'Compte APP-SPORT : '+id+'\nPhrase secrète : '+password+'\n',{mode:0o600,flag:'wx'});await rename(temporary,folder);temporary=null;console.log('Fichiers créés dans backend/.secrets/. Conservez la phrase dans votre gestionnaire de mots de passe.');
+}catch(e){console.error(e.message);process.exitCode=1;}finally{if(temporary)await rm(temporary,{recursive:true,force:true});}

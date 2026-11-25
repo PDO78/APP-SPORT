@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "build:mobile": "node scripts/build-mobile.cjs",
-    "test": "node --test tests/ocr.test.cjs tests/secure-store.test.cjs tests/tcx.test.cjs tests/fit.test.cjs tests/lcd.test.cjs tests/video-scenes.test.cjs",
+    "test": "node --test tests/ocr.test.cjs tests/secure-store.test.cjs tests/tcx.test.cjs tests/fit.test.cjs tests/lcd.test.cjs tests/video-scenes.test.cjs tests/vision/*.test.mjs",
     "sync:mobile": "npm run build:mobile && cap sync",
-    "test:browser": "node tests/browser.cjs",
+    "test:browser": "node tests/vision/browser.mjs",
     "vendor:ocr": "node scripts/vendor-ocr.cjs",
-    "test:photo": "node tests/real-photo.cjs",
-    "test:video": "node tests/video-browser.cjs"
+    "test:video": "node tests/vision/browser.mjs",
+    "test:vision": "node --test tests/vision/*.test.mjs",
+    "test:vision:real": "node tests/vision/real.mjs",
+    "worker:check": "wrangler deploy --dry-run --config backend/wrangler.jsonc --outdir /tmp/app-sport-vision-worker"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "8.0.1",
@@ -24,6 +26,8 @@
     "@capacitor/cli": "8.6.0",
     "@garmin/fitsdk": "21.221.0",
     "esbuild": "0.27.4",
-    "playwright": "1.62.1"
+    "miniflare": "4.20260730.0",
+    "playwright": "1.62.1",
+    "wrangler": "4.168.0"
   }
 }
