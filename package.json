@@ -11,7 +11,9 @@
     "test:video": "node tests/vision/browser.mjs",
     "test:vision": "node --test tests/vision/*.test.mjs",
     "test:vision:real": "node tests/vision/real.mjs",
-    "worker:check": "wrangler deploy --dry-run --config backend/wrangler.jsonc --outdir /tmp/app-sport-vision-worker"
+    "worker:check": "wrangler deploy --dry-run --config backend/wrangler.jsonc --outdir /tmp/app-sport-vision-worker",
+    "test:garmin:service": "python3 -m unittest discover -s tests/garmin -p '*_test.py' -v",
+    "test:garmin:browser": "node tests/garmin/browser.mjs"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "8.0.1",

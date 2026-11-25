@@ -22,3 +22,11 @@ Par défaut `backendURL` est vide : la reconnaissance IA est explicitement indis
 **Vidéo réelle reçue et découpée : 12 images vérifiées visuellement.** Libellés observés : 138 CALS, 81 BPM (sans mention de moyenne), 15:19 TIME et 1.356 KM. Un repli temporel corrige la perte des écrans en cas de tremblements. Reproduire avec `node tests/vision/extract-real.mjs /chemin/video.mp4` ; aucun appel IA dans ce test. **Tests réels OpenAI non exécutés** : configuration Worker/OpenAI manquante et photo originale non accessible comme fichier (visible dans le chat). Voir [le rapport détaillé](docs/AI-VALIDATION.md).
 
 Cette phase se développe sur `feature/ai-vision`. Aucune fusion dans `main` ni publication automatique. La base Capacitor iOS/Android est conservée, mais aucun binaire natif n’est compilé ou distribué par cette phase. Les essais sur appareils physiques restent nécessaires après configuration du backend.
+
+## Envoi direct à votre service Garmin personnel
+
+Une passerelle Python/Docker est livrée dans `garmin-service/`, adaptée aux variables et jetons de votre service existant. Elle crée une nouvelle activité FIT après vérification des valeurs, sans supprimer ni remplacer une activité de montre. Rameur, tapis et elliptique sont pris en charge. Une clé d’accès saisie sur le téléphone reste uniquement en mémoire ; les identifiants Garmin restent sur votre serveur. **Cette version est personnelle, avec le compte Garmin du serveur, pas une connexion Garmin multiutilisateur.**
+
+L’envoi dispose d’une déduplication SQLite et d’un suivi après interruption. Une réponse incertaine ne devient jamais une réussite et ne déclenche pas de nouvel envoi. L’export TCX/FIT existant et les imports manuels restent disponibles.
+
+Voir [la configuration et les tests de la passerelle](docs/GARMIN-SERVICE.md). Aucune URL de service n’est configurée par défaut, aucun serveur n’est déployé automatiquement. Les essais utilisent Garmin simulé : aucun import réel n’est revendiqué.

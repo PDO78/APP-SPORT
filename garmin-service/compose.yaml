@@ -1,0 +1,16 @@
+services:
+  garmin-app-sport:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:8766:8766"
+    volumes:
+      - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

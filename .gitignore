@@ -11,3 +11,10 @@ user-entry.json
 real-vision-results/
 backend/.secrets/
 backend/.secrets-tmp-*/
+
+__pycache__/
+*.pyc
+garmin-service/data/
+garmin-service/.secrets/
+*.sqlite3
+*.sqlite3-*
